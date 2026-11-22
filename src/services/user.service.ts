@@ -2,6 +2,7 @@ import { User } from '../models/User';
 import { AppError } from '../utils/AppError';
 import { PageQuery, pageMeta, skipFor } from '../utils/pagination';
 import { Role } from '../types/auth';
+import { deleteReviewsByUser } from './review.service';
 
 function assertNotSelf(actorId: string, targetId: string, action: string) {
   if (actorId === targetId) throw new AppError(400, `You cannot ${action} your own account`);
@@ -32,4 +33,5 @@ export async function deleteUser(actorId: string, id: string) {
   assertNotSelf(actorId, id, 'delete');
   const user = await User.findByIdAndDelete(id);
   if (!user) throw new AppError(404, 'User not found');
+  await deleteReviewsByUser(id);
 }

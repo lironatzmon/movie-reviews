@@ -65,6 +65,12 @@ export async function deleteReview(id: string, user: AuthUser) {
   await recalculateMovieRating(review.movie);
 }
 
+export async function deleteReviewsByUser(userId: string): Promise<void> {
+  const movieIds: Types.ObjectId[] = await Review.distinct('movie', { user: userId });
+  await Review.deleteMany({ user: userId });
+  await Promise.all(movieIds.map(recalculateMovieRating));
+}
+
 export async function getMovieRating(movieId: string) {
   const { averageRating, reviewsCount } = await getMovie(movieId);
   return { averageRating, reviewsCount };
