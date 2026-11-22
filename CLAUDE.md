@@ -1,7 +1,8 @@
 # Movie Reviews API — shared rules for everyone working on this repo
 
 Pair project (Liron + Rom). Assignment: REST API for movies and reviews.
-Stack: Node.js, Express, TypeScript, MongoDB (Mongoose), JWT, Zod, Swagger, Jest + Supertest.
+Stack: Node.js, Express 5, TypeScript, MongoDB (Mongoose 8), JWT, Zod 4, Swagger, Jest + Supertest.
+Mongoose stays on v8: v9 (driver 7) fails to connect inside Jest.
 
 ## Working style
 
@@ -22,11 +23,14 @@ Stack: Node.js, Express, TypeScript, MongoDB (Mongoose), JWT, Zod, Swagger, Jest
 ## Shared building blocks (created in stage 1, don't duplicate)
 
 - `src/utils/AppError.ts` — `new AppError(statusCode, message)`
-- `src/utils/asyncHandler.ts` — wrap every async controller
+- Express 5: async controllers can just `throw` / reject — errors reach `errorHandler` automatically (no asyncHandler).
 - `src/middlewares/validate.ts` — `validate({ body?, params?, query? })` with Zod schemas
 - `src/middlewares/errorHandler.ts` — the only place that formats errors
 - `src/utils/jwt.ts` — `signToken({ id, role })`, `verifyToken(token)`
 - `src/middlewares/auth.ts` — `authenticate` (sets `req.user = { id, role }`), `authorize(...roles)`
+- `src/validators/common.validator.ts` — `objectIdSchema`, `idParamsSchema`, `paginationQuerySchema`
+- `src/types/auth.ts` — `Role`, `AuthUser`, `ROLES`
+- `tests/helpers/http.ts` — `mockRequest`, `mockResponse` for unit tests
 - `tests/helpers/db.ts` — in-memory MongoDB (`connect`, `clear`, `close`) for integration/API tests
 
 ## Conventions
