@@ -3,15 +3,19 @@ import { Movie } from '../../src/models/Movie';
 import * as movieService from '../../src/services/movie.service';
 import { AppError } from '../../src/utils/AppError';
 import * as db from '../helpers/db';
-import { makeUser } from '../helpers/auth';
+import { createUser, TestUser } from '../helpers/auth';
 import { movieInput } from '../helpers/movies';
 
 beforeAll(db.connect);
 afterEach(db.clear);
 afterAll(db.close);
 
-const owner = makeUser();
+let owner: TestUser;
 const missingId = new Types.ObjectId().toString();
+
+beforeEach(async () => {
+  owner = await createUser();
+});
 
 async function expectAppError(promise: Promise<unknown>, statusCode: number) {
   await expect(promise).rejects.toBeInstanceOf(AppError);
@@ -124,7 +128,11 @@ describe('updateMovie', () => {
   it('lets an admin update', async () => {
     const created = await movieService.createMovie(movieInput(), owner.id);
 
-    const movie = await movieService.updateMovie(created.id, { title: 'New' }, makeUser('admin'));
+    const movie = await movieService.updateMovie(
+      created.id,
+      { title: 'New' },
+      await createUser('admin'),
+    );
 
     expect(movie.title).toBe('New');
   });
@@ -132,7 +140,10 @@ describe('updateMovie', () => {
   it('throws 403 for another user', async () => {
     const created = await movieService.createMovie(movieInput(), owner.id);
 
-    await expectAppError(movieService.updateMovie(created.id, { title: 'New' }, makeUser()), 403);
+    await expectAppError(
+      movieService.updateMovie(created.id, { title: 'New' }, await createUser()),
+      403,
+    );
   });
 
   it('throws 404 for a missing movie', async () => {
@@ -152,7 +163,7 @@ describe('deleteMovie', () => {
   it('lets an admin delete', async () => {
     const created = await movieService.createMovie(movieInput(), owner.id);
 
-    await movieService.deleteMovie(created.id, makeUser('admin'));
+    await movieService.deleteMovie(created.id, await createUser('admin'));
 
     expect(await Movie.findById(created.id)).toBeNull();
   });
@@ -160,7 +171,7 @@ describe('deleteMovie', () => {
   it('throws 403 for another user and keeps the movie', async () => {
     const created = await movieService.createMovie(movieInput(), owner.id);
 
-    await expectAppError(movieService.deleteMovie(created.id, makeUser()), 403);
+    await expectAppError(movieService.deleteMovie(created.id, await createUser()), 403);
     expect(await Movie.findById(created.id)).not.toBeNull();
   });
 

@@ -2,6 +2,7 @@ import { FilterQuery, SortOrder } from 'mongoose';
 import { Movie, MovieDoc } from '../models/Movie';
 import { AuthUser } from '../types/auth';
 import { AppError } from '../utils/AppError';
+import { pageMeta, skipFor } from '../utils/pagination';
 import {
   CreateMovieInput,
   ListMoviesQuery,
@@ -32,16 +33,15 @@ function buildFilter({ search, genre, year, director }: ListMoviesQuery): Filter
 }
 
 export async function listMovies(query: ListMoviesQuery) {
-  const { page, limit, sort } = query;
   const filter = buildFilter(query);
   const [data, total] = await Promise.all([
     Movie.find(filter)
-      .sort({ ...(sort ? SORT_FIELDS[sort] : DEFAULT_SORT), _id: 1 })
-      .skip((page - 1) * limit)
-      .limit(limit),
+      .sort({ ...(query.sort ? SORT_FIELDS[query.sort] : DEFAULT_SORT), _id: 1 })
+      .skip(skipFor(query))
+      .limit(query.limit),
     Movie.countDocuments(filter),
   ]);
-  return { data, pagination: { page, limit, total } };
+  return { data, pagination: pageMeta(query, total) };
 }
 
 export async function getMovie(id: string) {

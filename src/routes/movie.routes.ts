@@ -30,25 +30,12 @@ const router = Router();
  *         - $ref: '#/components/schemas/MovieInput'
  *         - type: object
  *           properties:
- *             _id: { type: string }
+ *             id: { type: string }
  *             createdBy: { type: string }
  *             averageRating: { type: number, readOnly: true }
  *             reviewsCount: { type: integer, readOnly: true }
  *             createdAt: { type: string, format: date-time }
  *             updatedAt: { type: string, format: date-time }
- *     Pagination:
- *       type: object
- *       properties:
- *         page: { type: integer }
- *         limit: { type: integer }
- *         total: { type: integer }
- *   parameters:
- *     MovieId:
- *       in: path
- *       name: id
- *       required: true
- *       schema: { type: string }
- *       description: Movie ObjectId
  *   responses:
  *     MovieResponse:
  *       description: The movie
@@ -58,11 +45,6 @@ const router = Router();
  *             type: object
  *             properties:
  *               data: { $ref: '#/components/schemas/Movie' }
- *     ErrorResponse:
- *       description: Error
- *       content:
- *         application/json:
- *           schema: { $ref: '#/components/schemas/Error' }
  */
 
 /**
@@ -76,8 +58,8 @@ const router = Router();
  *       - { in: query, name: genre, schema: { type: string } }
  *       - { in: query, name: year, schema: { type: integer } }
  *       - { in: query, name: director, schema: { type: string } }
- *       - { in: query, name: page, schema: { type: integer, default: 1, minimum: 1 } }
- *       - { in: query, name: limit, schema: { type: integer, default: 10, minimum: 1, maximum: 50 } }
+ *       - $ref: '#/components/parameters/PageParam'
+ *       - $ref: '#/components/parameters/LimitParam'
  *       - in: query
  *         name: sort
  *         schema: { type: string, enum: [rating, -rating, year, -year, title] }
@@ -91,7 +73,7 @@ const router = Router();
  *               properties:
  *                 data: { type: array, items: { $ref: '#/components/schemas/Movie' } }
  *                 pagination: { $ref: '#/components/schemas/Pagination' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
  *   post:
  *     tags: [Movies]
  *     summary: Create a movie
@@ -103,8 +85,8 @@ const router = Router();
  *           schema: { $ref: '#/components/schemas/MovieInput' }
  *     responses:
  *       201: { $ref: '#/components/responses/MovieResponse' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
  */
 router
   .route('/')
@@ -117,16 +99,16 @@ router
  *   get:
  *     tags: [Movies]
  *     summary: Get a movie (includes averageRating and reviewsCount)
- *     parameters: [{ $ref: '#/components/parameters/MovieId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     responses:
  *       200: { $ref: '#/components/responses/MovieResponse' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  *   put:
  *     tags: [Movies]
  *     summary: Update a movie (owner or admin)
  *     security: [{ bearerAuth: [] }]
- *     parameters: [{ $ref: '#/components/parameters/MovieId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     requestBody:
  *       required: true
  *       content:
@@ -134,21 +116,21 @@ router
  *           schema: { $ref: '#/components/schemas/MovieInput' }
  *     responses:
  *       200: { $ref: '#/components/responses/MovieResponse' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
- *       403: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       403: { $ref: '#/components/responses/Forbidden' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  *   delete:
  *     tags: [Movies]
  *     summary: Delete a movie and its reviews (owner or admin)
  *     security: [{ bearerAuth: [] }]
- *     parameters: [{ $ref: '#/components/parameters/MovieId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     responses:
  *       204: { description: Deleted }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
- *       403: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       403: { $ref: '#/components/responses/Forbidden' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  */
 router
   .route('/:id')

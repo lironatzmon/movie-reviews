@@ -1,8 +1,6 @@
-import { Types } from 'mongoose';
 import { User } from '../../src/models/User';
 import * as authService from '../../src/services/auth.service';
-import { AuthUser, Role } from '../../src/types/auth';
-import { signToken } from '../../src/utils/jwt';
+import { Role } from '../../src/types/auth';
 
 let counter = 0;
 
@@ -19,11 +17,8 @@ export async function createUser(role: Role = 'user') {
   return { id: user.id as string, email: user.email, role, token };
 }
 
-/** Builds an in-memory user (not saved) for tests that only need a token. */
-export function makeUser(role: Role = 'user'): AuthUser {
-  return { id: new Types.ObjectId().toString(), role };
-}
+export type TestUser = Awaited<ReturnType<typeof createUser>>;
 
-export function bearer(user: AuthUser): string {
-  return `Bearer ${signToken(user)}`;
+export function bearer({ token }: TestUser): string {
+  return `Bearer ${token}`;
 }

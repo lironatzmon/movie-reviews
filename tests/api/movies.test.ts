@@ -2,15 +2,19 @@ import request from 'supertest';
 import { Types } from 'mongoose';
 import app from '../../src/app';
 import * as db from '../helpers/db';
-import { bearer, makeUser } from '../helpers/auth';
+import { bearer, createUser, TestUser } from '../helpers/auth';
 import { movieInput } from '../helpers/movies';
 
 beforeAll(db.connect);
 afterEach(db.clear);
 afterAll(db.close);
 
-const owner = makeUser();
+let owner: TestUser;
 const missingId = new Types.ObjectId().toString();
+
+beforeEach(async () => {
+  owner = await createUser();
+});
 
 async function createMovie(overrides: Record<string, unknown> = {}) {
   const res = await request(app)
@@ -134,7 +138,7 @@ describe('PUT /api/movies/:id', () => {
 
     const res = await request(app)
       .put(`/api/movies/${movie.id}`)
-      .set('Authorization', bearer(makeUser('admin')))
+      .set('Authorization', bearer(await createUser('admin')))
       .send({ title: 'New title' });
 
     expect(res.status).toBe(200);
@@ -145,7 +149,7 @@ describe('PUT /api/movies/:id', () => {
 
     const res = await request(app)
       .put(`/api/movies/${movie.id}`)
-      .set('Authorization', bearer(makeUser()))
+      .set('Authorization', bearer(await createUser()))
       .send({ title: 'New title' });
 
     expect(res.status).toBe(403);
@@ -186,7 +190,7 @@ describe('DELETE /api/movies/:id', () => {
 
     const res = await request(app)
       .delete(`/api/movies/${movie.id}`)
-      .set('Authorization', bearer(makeUser('admin')));
+      .set('Authorization', bearer(await createUser('admin')));
 
     expect(res.status).toBe(204);
   });
@@ -196,7 +200,7 @@ describe('DELETE /api/movies/:id', () => {
 
     const res = await request(app)
       .delete(`/api/movies/${movie.id}`)
-      .set('Authorization', bearer(makeUser()));
+      .set('Authorization', bearer(await createUser()));
 
     expect(res.status).toBe(403);
   });
