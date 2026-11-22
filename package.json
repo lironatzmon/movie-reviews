@@ -13,7 +13,8 @@
     "start": "node dist/server.js",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed": "node -r ts-node/register/transpile-only src/scripts/seed.ts"
   },
   "keywords": [],
   "author": "",

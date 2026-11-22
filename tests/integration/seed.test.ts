@@ -28,12 +28,15 @@ describe('seed', () => {
     expect(rated.every((movie) => movie.averageRating > 0)).toBe(true);
   });
 
+  const countAll = () =>
+    Promise.all([User.countDocuments(), Movie.countDocuments(), Review.countDocuments()]);
+
   it('can run again without duplicating data', async () => {
-    const before = await Promise.all([User, Movie, Review].map((m) => m.countDocuments()));
+    const before = await countAll();
 
     await seed();
 
-    const after = await Promise.all([User, Movie, Review].map((m) => m.countDocuments()));
+    const after = await countAll();
     expect(after).toEqual(before);
   });
 });
