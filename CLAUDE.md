@@ -31,6 +31,9 @@ Mongoose stays on v8: v9 (driver 7) fails to connect inside Jest.
 - `src/validators/common.validator.ts` — `objectIdSchema`, `idParamsSchema`, `paginationQuerySchema`
 - `src/models/toJSON.ts` — `toJSONOptions`: pass as `toJSON` option in every schema (`id` not `_id`, no `__v`)
 - `src/types/auth.ts` — `Role`, `AuthUser`, `ROLES`
+- `src/utils/pagination.ts` — `skipFor(query)`, `pageMeta(query, total)` for list endpoints
+- Swagger shared components (in `user.routes.ts`): parameters `IdParam`, `PageParam`, `LimitParam`; schema `Pagination`; responses `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound`
+- `tests/helpers/auth.ts` — `createUser(role?)` → `{ id, email, role, token }` (real user in the test DB)
 - `tests/helpers/http.ts` — `mockRequest`, `mockResponse` for unit tests
 - `tests/helpers/db.ts` — in-memory MongoDB (`connect`, `clear`, `close`) for integration/API tests
 

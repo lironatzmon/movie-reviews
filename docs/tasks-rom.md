@@ -1,8 +1,8 @@
 # Tasks — Rom
 
 Read `CLAUDE.md` first. Start only after the stage 1 infra is on `main`
-(`src/middlewares/auth.ts` and `tests/helpers/db.ts` exist). You don't need the User/Auth
-routes: in tests create a token with `signToken({ id: new Types.ObjectId().toString(), role: 'user' })`.
+(`src/middlewares/auth.ts` and `tests/helpers/db.ts` exist). Auth and Users are done: in
+API/integration tests use `createUser()` / `createUser('admin')` from `tests/helpers/auth.ts` to get a real user + token.
 
 ## Task 1 — Movies (`feature/movies`)
 
