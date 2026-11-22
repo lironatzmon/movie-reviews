@@ -16,3 +16,9 @@ export async function createUser(role: Role = 'user') {
   const { token } = await authService.login({ email: user.email, password: 'secret123' });
   return { id: user.id as string, email: user.email, role, token };
 }
+
+export type TestUser = Awaited<ReturnType<typeof createUser>>;
+
+export function bearer({ token }: TestUser): string {
+  return `Bearer ${token}`;
+}
