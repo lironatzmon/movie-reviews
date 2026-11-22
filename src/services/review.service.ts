@@ -4,13 +4,9 @@ import { Review } from '../models/Review';
 import { AuthUser } from '../types/auth';
 import { AppError } from '../utils/AppError';
 import { assertOwnerOrAdmin } from '../utils/ownership';
+import { PageQuery, pageMeta, skipFor } from '../utils/pagination';
 import { CreateReviewInput, UpdateReviewInput } from '../validators/review.validator';
 import { getMovie } from './movie.service';
-
-interface Pagination {
-  page: number;
-  limit: number;
-}
 
 const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10;
 
@@ -28,17 +24,14 @@ export async function recalculateMovieRating(movieId: string | Types.ObjectId): 
   );
 }
 
-export async function listReviews(movieId: string, { page, limit }: Pagination) {
+export async function listReviews(movieId: string, query: PageQuery) {
   await getMovie(movieId);
   const filter = { movie: movieId };
   const [data, total] = await Promise.all([
-    Review.find(filter)
-      .sort({ createdAt: -1, _id: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit),
+    Review.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skipFor(query)).limit(query.limit),
     Review.countDocuments(filter),
   ]);
-  return { data, pagination: { page, limit, total } };
+  return { data, pagination: pageMeta(query, total) };
 }
 
 export async function createReview(movieId: string, input: CreateReviewInput, userId: string) {

@@ -3,10 +3,9 @@ import { Movie } from '../../src/models/Movie';
 import { Review } from '../../src/models/Review';
 import * as movieService from '../../src/services/movie.service';
 import * as reviewService from '../../src/services/review.service';
-import { AuthUser } from '../../src/types/auth';
 import { AppError } from '../../src/utils/AppError';
 import * as db from '../helpers/db';
-import { makeUser } from '../helpers/auth';
+import { createUser, TestUser } from '../helpers/auth';
 import { movieInput } from '../helpers/movies';
 import { reviewInput } from '../helpers/reviews';
 
@@ -14,12 +13,13 @@ beforeAll(db.connect);
 afterEach(db.clear);
 afterAll(db.close);
 
-const author = makeUser();
+let author: TestUser;
 const missingId = new Types.ObjectId().toString();
 let movieId: string;
 
 beforeEach(async () => {
-  movieId = (await movieService.createMovie(movieInput(), makeUser().id)).id;
+  author = await createUser();
+  movieId = (await movieService.createMovie(movieInput(), (await createUser()).id)).id;
 });
 
 async function expectAppError(promise: Promise<unknown>, statusCode: number) {
@@ -27,8 +27,8 @@ async function expectAppError(promise: Promise<unknown>, statusCode: number) {
   await expect(promise).rejects.toMatchObject({ statusCode });
 }
 
-const review = (rating: number, user: AuthUser = makeUser()) =>
-  reviewService.createReview(movieId, reviewInput({ rating }), user.id);
+const review = async (rating: number, user?: TestUser) =>
+  reviewService.createReview(movieId, reviewInput({ rating }), (user ?? (await createUser())).id);
 
 const movieRating = async () => {
   const { averageRating, reviewsCount } = (await Movie.findById(movieId))!;
@@ -81,7 +81,7 @@ describe('updateReview', () => {
     const updated = await reviewService.updateReview(
       created.id,
       { text: 'Edited' },
-      makeUser('admin'),
+      await createUser('admin'),
     );
 
     expect(updated.text).toBe('Edited');
@@ -90,7 +90,10 @@ describe('updateReview', () => {
   it('throws 403 for another user', async () => {
     const created = await review(8, author);
 
-    await expectAppError(reviewService.updateReview(created.id, { rating: 1 }, makeUser()), 403);
+    await expectAppError(
+      reviewService.updateReview(created.id, { rating: 1 }, await createUser()),
+      403,
+    );
   });
 
   it('throws 404 for a missing review', async () => {
@@ -120,7 +123,7 @@ describe('deleteReview', () => {
   it('lets an admin delete', async () => {
     const created = await review(9, author);
 
-    await reviewService.deleteReview(created.id, makeUser('admin'));
+    await reviewService.deleteReview(created.id, await createUser('admin'));
 
     expect(await Review.findById(created.id)).toBeNull();
   });
@@ -128,7 +131,7 @@ describe('deleteReview', () => {
   it('throws 403 for another user', async () => {
     const created = await review(9, author);
 
-    await expectAppError(reviewService.deleteReview(created.id, makeUser()), 403);
+    await expectAppError(reviewService.deleteReview(created.id, await createUser()), 403);
   });
 });
 
@@ -181,7 +184,7 @@ describe('recalculateMovieRating', () => {
 
 describe('deleteMovie', () => {
   it('removes the movie reviews', async () => {
-    const owner = makeUser();
+    const owner = await createUser();
     const movie = await movieService.createMovie(movieInput(), owner.id);
     await reviewService.createReview(movie.id, reviewInput(), author.id);
     await review(8);

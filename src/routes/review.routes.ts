@@ -38,12 +38,6 @@ const router = Router();
  *       required: true
  *       schema: { type: string }
  *       description: Movie ObjectId
- *     ReviewId:
- *       in: path
- *       name: id
- *       required: true
- *       schema: { type: string }
- *       description: Review ObjectId
  *   responses:
  *     ReviewResponse:
  *       description: The review
@@ -63,8 +57,8 @@ const router = Router();
  *     summary: List reviews of a movie (newest first)
  *     parameters:
  *       - $ref: '#/components/parameters/ReviewMovieId'
- *       - { in: query, name: page, schema: { type: integer, default: 1, minimum: 1 } }
- *       - { in: query, name: limit, schema: { type: integer, default: 10, minimum: 1, maximum: 50 } }
+ *       - $ref: '#/components/parameters/PageParam'
+ *       - $ref: '#/components/parameters/LimitParam'
  *     responses:
  *       200:
  *         description: A page of reviews
@@ -75,8 +69,8 @@ const router = Router();
  *               properties:
  *                 data: { type: array, items: { $ref: '#/components/schemas/Review' } }
  *                 pagination: { $ref: '#/components/schemas/Pagination' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  *   post:
  *     tags: [Reviews]
  *     summary: Review a movie (one review per user per movie)
@@ -89,10 +83,12 @@ const router = Router();
  *           schema: { $ref: '#/components/schemas/ReviewInput' }
  *     responses:
  *       201: { $ref: '#/components/responses/ReviewResponse' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
- *       409: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       404: { $ref: '#/components/responses/NotFound' }
+ *       409:
+ *         description: Already reviewed
+ *         content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
  */
 router
   .route('/movies/:movieId/reviews')
@@ -106,7 +102,7 @@ router
  *   get:
  *     tags: [Reviews]
  *     summary: Get a movie's average rating and review count
- *     parameters: [{ $ref: '#/components/parameters/MovieId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     responses:
  *       200:
  *         description: Rating summary
@@ -120,8 +116,8 @@ router
  *                   properties:
  *                     averageRating: { type: number, example: 8.5 }
  *                     reviewsCount: { type: integer, example: 2 }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  */
 router.get(
   '/movies/:id/rating',
@@ -136,7 +132,7 @@ router.get(
  *     tags: [Reviews]
  *     summary: Edit a review's rating or text (owner or admin)
  *     security: [{ bearerAuth: [] }]
- *     parameters: [{ $ref: '#/components/parameters/ReviewId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     requestBody:
  *       required: true
  *       content:
@@ -144,21 +140,21 @@ router.get(
  *           schema: { $ref: '#/components/schemas/ReviewInput' }
  *     responses:
  *       200: { $ref: '#/components/responses/ReviewResponse' }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
- *       403: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       403: { $ref: '#/components/responses/Forbidden' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  *   delete:
  *     tags: [Reviews]
  *     summary: Delete a review (owner or admin)
  *     security: [{ bearerAuth: [] }]
- *     parameters: [{ $ref: '#/components/parameters/ReviewId' }]
+ *     parameters: [{ $ref: '#/components/parameters/IdParam' }]
  *     responses:
  *       204: { description: Deleted }
- *       400: { $ref: '#/components/responses/ErrorResponse' }
- *       401: { $ref: '#/components/responses/ErrorResponse' }
- *       403: { $ref: '#/components/responses/ErrorResponse' }
- *       404: { $ref: '#/components/responses/ErrorResponse' }
+ *       400: { $ref: '#/components/responses/BadRequest' }
+ *       401: { $ref: '#/components/responses/Unauthorized' }
+ *       403: { $ref: '#/components/responses/Forbidden' }
+ *       404: { $ref: '#/components/responses/NotFound' }
  */
 router
   .route('/reviews/:id')

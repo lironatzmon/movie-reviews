@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 import * as reviewService from '../services/review.service';
-
-type PaginationQuery = { page: number; limit: number };
+import { PageQuery } from '../utils/pagination';
 
 export async function listReviews(req: Request, res: Response) {
-  const query = req.query as unknown as PaginationQuery;
+  const query = req.query as unknown as PageQuery;
   res.json(await reviewService.listReviews(req.params.movieId as string, query));
 }
 

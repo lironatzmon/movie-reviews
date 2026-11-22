@@ -2,9 +2,8 @@ import request from 'supertest';
 import { Types } from 'mongoose';
 import app from '../../src/app';
 import { Review } from '../../src/models/Review';
-import { AuthUser } from '../../src/types/auth';
 import * as db from '../helpers/db';
-import { bearer, makeUser } from '../helpers/auth';
+import { bearer, createUser, TestUser } from '../helpers/auth';
 import { movieInput } from '../helpers/movies';
 import { reviewInput } from '../helpers/reviews';
 
@@ -12,12 +11,14 @@ beforeAll(db.connect);
 afterEach(db.clear);
 afterAll(db.close);
 
-const owner = makeUser();
-const author = makeUser();
+let owner: TestUser;
+let author: TestUser;
 const missingId = new Types.ObjectId().toString();
 let movieId: string;
 
 beforeEach(async () => {
+  owner = await createUser();
+  author = await createUser();
   const res = await request(app)
     .post('/api/movies')
     .set('Authorization', bearer(owner))
@@ -25,7 +26,7 @@ beforeEach(async () => {
   movieId = res.body.data.id;
 });
 
-const postReview = (body: object, user: AuthUser = author, id = movieId) =>
+const postReview = (body: object, user: TestUser = author, id = movieId) =>
   request(app).post(`/api/movies/${id}/reviews`).set('Authorization', bearer(user)).send(body);
 
 const getRating = async () => (await request(app).get(`/api/movies/${movieId}/rating`)).body.data;
@@ -75,7 +76,7 @@ describe('POST /api/movies/:movieId/reviews', () => {
 describe('GET /api/movies/:movieId/reviews', () => {
   it('lists reviews newest first with pagination', async () => {
     await postReview(reviewInput({ text: 'first' }));
-    await postReview(reviewInput({ text: 'second' }), makeUser());
+    await postReview(reviewInput({ text: 'second' }), await createUser());
 
     const res = await request(app).get(`/api/movies/${movieId}/reviews?limit=1`);
 
@@ -104,7 +105,7 @@ describe('PUT /api/reviews/:id', () => {
 
     const res = await request(app)
       .put(`/api/reviews/${body.data.id}`)
-      .set('Authorization', bearer(makeUser()))
+      .set('Authorization', bearer(await createUser()))
       .send({ rating: 1 });
 
     expect(res.status).toBe(403);
@@ -115,7 +116,7 @@ describe('PUT /api/reviews/:id', () => {
 
     const res = await request(app)
       .put(`/api/reviews/${body.data.id}`)
-      .set('Authorization', bearer(makeUser('admin')))
+      .set('Authorization', bearer(await createUser('admin')))
       .send({ text: 'Moderated' });
 
     expect(res.status).toBe(200);
@@ -149,7 +150,7 @@ describe('DELETE /api/reviews/:id', () => {
 
     const res = await request(app)
       .delete(`/api/reviews/${body.data.id}`)
-      .set('Authorization', bearer(makeUser()));
+      .set('Authorization', bearer(await createUser()));
 
     expect(res.status).toBe(403);
   });
@@ -159,7 +160,7 @@ describe('DELETE /api/reviews/:id', () => {
 
     const res = await request(app)
       .delete(`/api/reviews/${body.data.id}`)
-      .set('Authorization', bearer(makeUser('admin')));
+      .set('Authorization', bearer(await createUser('admin')));
 
     expect(res.status).toBe(204);
   });
