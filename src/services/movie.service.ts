@@ -1,8 +1,10 @@
 import { FilterQuery, SortOrder } from 'mongoose';
 import { Movie, MovieDoc } from '../models/Movie';
+import { Review } from '../models/Review';
 import { AuthUser } from '../types/auth';
 import { AppError } from '../utils/AppError';
 import { pageMeta, skipFor } from '../utils/pagination';
+import { assertOwnerOrAdmin } from '../utils/ownership';
 import {
   CreateMovieInput,
   ListMoviesQuery,
@@ -56,9 +58,7 @@ export function createMovie(input: CreateMovieInput, userId: string) {
 
 async function getOwnedMovie(id: string, user: AuthUser) {
   const movie = await getMovie(id);
-  if (user.role !== 'admin' && movie.createdBy.toString() !== user.id) {
-    throw new AppError(403, 'You are not allowed to modify this movie');
-  }
+  assertOwnerOrAdmin(movie.createdBy, user);
   return movie;
 }
 
@@ -70,5 +70,6 @@ export async function updateMovie(id: string, input: UpdateMovieInput, user: Aut
 
 export async function deleteMovie(id: string, user: AuthUser) {
   const movie = await getOwnedMovie(id, user);
+  await Review.deleteMany({ movie: movie._id });
   await movie.deleteOne();
 }
