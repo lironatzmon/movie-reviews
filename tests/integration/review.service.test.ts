@@ -195,3 +195,29 @@ describe('deleteMovie', () => {
     expect(await Review.countDocuments({ movie: movieId })).toBe(1);
   });
 });
+
+describe('deleteReviewsByUser', () => {
+  it("deletes the user's reviews and recalculates every affected movie", async () => {
+    const otherMovieId = (await movieService.createMovie(movieInput(), author.id)).id;
+    await review(10, author);
+    await review(6);
+    await reviewService.createReview(otherMovieId, reviewInput({ rating: 9 }), author.id);
+
+    await reviewService.deleteReviewsByUser(author.id);
+
+    expect(await Review.countDocuments({ user: author.id })).toBe(0);
+    expect(await movieRating()).toEqual({ averageRating: 6, reviewsCount: 1 });
+    expect(await reviewService.getMovieRating(otherMovieId)).toEqual({
+      averageRating: 0,
+      reviewsCount: 0,
+    });
+  });
+
+  it('does nothing for a user without reviews', async () => {
+    await review(7);
+
+    await reviewService.deleteReviewsByUser(author.id);
+
+    expect(await movieRating()).toEqual({ averageRating: 7, reviewsCount: 1 });
+  });
+});

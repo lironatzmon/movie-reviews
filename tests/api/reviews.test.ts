@@ -204,3 +204,19 @@ describe('Swagger', () => {
     expect(body.paths['/api/movies/{id}/rating'].get).toBeDefined();
   });
 });
+
+describe('DELETE /api/users/:id', () => {
+  it("removes the user's reviews and updates the movie rating", async () => {
+    const { body } = await postReview(reviewInput({ rating: 10 }));
+    await postReview(reviewInput({ rating: 6 }), await createUser());
+    const admin = await createUser('admin');
+
+    const res = await request(app)
+      .delete(`/api/users/${author.id}`)
+      .set('Authorization', bearer(admin));
+
+    expect(res.status).toBe(204);
+    expect(await Review.findById(body.data.id)).toBeNull();
+    expect(await getRating()).toEqual({ averageRating: 6, reviewsCount: 1 });
+  });
+});
