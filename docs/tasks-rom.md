@@ -61,6 +61,17 @@ No reviews → 0 and 0. Put this in one function `recalculateMovieRating(movieId
 Must-have tests: average updates after create/edit/delete, 8.5 accepted, 8.3 and 11 rejected,
 duplicate review → 409, other user can't edit → 403, admin can, deleting a movie removes its reviews.
 
+## Task 3 — Delete a user's reviews (in `feature/reviews`)
+
+When an admin deletes a user, their reviews must be deleted too, and the rating of every
+movie they reviewed recalculated.
+
+- In the review service export `deleteReviewsByUser(userId)`: find the user's reviews, delete them,
+  then call `recalculateMovieRating` for each affected movie.
+- Call it from `deleteUser` in `src/services/user.service.ts` after the user is deleted.
+- Test: user reviews a movie → admin deletes the user → review is gone and the movie's
+  `averageRating` / `reviewsCount` are updated.
+
 ## Done =
 
 `npm test` + `npm run lint` pass, Swagger documents every endpoint, PR opened to `main`.
