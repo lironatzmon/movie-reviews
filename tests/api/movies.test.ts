@@ -86,7 +86,7 @@ describe('GET /api/movies/:id', () => {
   it('returns the movie with rating fields', async () => {
     const movie = await createMovie();
 
-    const res = await request(app).get(`/api/movies/${movie._id}`);
+    const res = await request(app).get(`/api/movies/${movie.id}`);
 
     expect(res.status).toBe(200);
     expect(res.body.data).toMatchObject({ title: 'Inception', averageRating: 0, reviewsCount: 0 });
@@ -110,7 +110,7 @@ describe('PUT /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .put(`/api/movies/${movie._id}`)
+      .put(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(owner))
       .send({ title: 'New title' });
 
@@ -122,7 +122,7 @@ describe('PUT /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .put(`/api/movies/${movie._id}`)
+      .put(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(owner))
       .send({ title: 'New title', averageRating: 10, createdBy: missingId });
 
@@ -133,7 +133,7 @@ describe('PUT /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .put(`/api/movies/${movie._id}`)
+      .put(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(makeUser('admin')))
       .send({ title: 'New title' });
 
@@ -144,7 +144,7 @@ describe('PUT /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .put(`/api/movies/${movie._id}`)
+      .put(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(makeUser()))
       .send({ title: 'New title' });
 
@@ -154,7 +154,7 @@ describe('PUT /api/movies/:id', () => {
   it('returns 401 without a token', async () => {
     const movie = await createMovie();
 
-    const res = await request(app).put(`/api/movies/${movie._id}`).send({ title: 'New title' });
+    const res = await request(app).put(`/api/movies/${movie.id}`).send({ title: 'New title' });
 
     expect(res.status).toBe(401);
   });
@@ -174,18 +174,18 @@ describe('DELETE /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .delete(`/api/movies/${movie._id}`)
+      .delete(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(owner));
 
     expect(res.status).toBe(204);
-    expect((await request(app).get(`/api/movies/${movie._id}`)).status).toBe(404);
+    expect((await request(app).get(`/api/movies/${movie.id}`)).status).toBe(404);
   });
 
   it('lets an admin delete', async () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .delete(`/api/movies/${movie._id}`)
+      .delete(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(makeUser('admin')));
 
     expect(res.status).toBe(204);
@@ -195,7 +195,7 @@ describe('DELETE /api/movies/:id', () => {
     const movie = await createMovie();
 
     const res = await request(app)
-      .delete(`/api/movies/${movie._id}`)
+      .delete(`/api/movies/${movie.id}`)
       .set('Authorization', bearer(makeUser()));
 
     expect(res.status).toBe(403);
