@@ -6,6 +6,7 @@ Mongoose stays on v8: v9 (driver 7) fails to connect inside Jest.
 
 ## Working style
 
+- Always reply to the user in Hebrew (code, commits and docs stay in English).
 - Be token-efficient: no long explanations, no re-reading files you already know, no unrequested refactors.
 - If something fails and you can't fix it in 2 tries, stop and tell the user what's blocked.
 - Clean, readable code. Small functions. No dead code, no commented-out code.
