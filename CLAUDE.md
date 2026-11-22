@@ -27,7 +27,7 @@ Mongoose stays on v8: v9 (driver 7) fails to connect inside Jest.
 - `src/middlewares/validate.ts` — `validate({ body?, params?, query? })` with Zod schemas
 - `src/middlewares/errorHandler.ts` — the only place that formats errors
 - `src/utils/jwt.ts` — `signToken({ id, role })`, `verifyToken(token)`
-- `src/middlewares/auth.ts` — `authenticate` (sets `req.user = { id, role }`), `authorize(...roles)`
+- `src/middlewares/auth.ts` — `authenticate` (verifies JWT, loads the user from DB, sets `req.user = { id, role }`; deleted user → 401), `authorize(...roles)`
 - `src/validators/common.validator.ts` — `objectIdSchema`, `idParamsSchema`, `paginationQuerySchema`
 - `src/models/toJSON.ts` — `toJSONOptions`: pass as `toJSON` option in every schema (`id` not `_id`, no `__v`)
 - `src/types/auth.ts` — `Role`, `AuthUser`, `ROLES`

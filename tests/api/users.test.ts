@@ -92,3 +92,28 @@ describe('admin user management', () => {
     expect(after.status).toBe(404);
   });
 });
+
+describe('token reflects the current state of the user', () => {
+  it('a role change applies immediately to an existing token', async () => {
+    const admin = await createUser('admin');
+    const target = await createUser();
+
+    await request(app)
+      .patch(`/api/users/${target.id}/role`)
+      .set(auth(admin.token))
+      .send({ role: 'admin' });
+    const res = await request(app).get('/api/users').set(auth(target.token));
+
+    expect(res.status).toBe(200);
+  });
+
+  it("a deleted user's token stops working", async () => {
+    const admin = await createUser('admin');
+    const target = await createUser();
+
+    await request(app).delete(`/api/users/${target.id}`).set(auth(admin.token));
+    const res = await request(app).get('/api/auth/me').set(auth(target.token));
+
+    expect(res.status).toBe(401);
+  });
+});
